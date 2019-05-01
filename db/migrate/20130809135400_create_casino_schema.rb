@@ -1,31 +1,29 @@
-# In order to support pre-2.0 installations of CASino that included CASinoCore,
-# we must rebuild the un-namespaced CASinoCore schema so that we can upgrade
-class CreateCasinoCoreSchema < ActiveRecord::Migration[4.2]
-  CoreTables = %w[login_tickets proxy_granting_tickets proxy_tickets service_rules service_tickets ticket_granting_tickets two_factor_authenticators users]
-
-  def up
-    CoreTables.each do |table_name|
-      unless connection.data_source_exists? table_name
-        send "create_#{table_name}"
-      end
-    end
-  end
-
-  def down
-    # No-op
-    # Handled by 20130809135401_rename_base_models.rb
-  end
-
-  def create_login_tickets
+class CreateCasinoSchema < ActiveRecord::Migration[4.2]
+  def change
     create_table :casino_login_tickets do |t|
       t.string :ticket, :null => false
 
       t.timestamps
     end
     add_index :casino_login_tickets, :ticket, :unique => true
-  end
 
-  def create_proxy_granting_tickets
+    create_table :casino_auth_token_tickets do |t|
+      t.string :ticket, :null => false
+
+      t.timestamps
+    end
+    add_index :casino_auth_token_tickets, :ticket, :unique => true
+
+    create_table :casino_login_attempts do |t|
+      t.integer :user_id, null: false
+      t.boolean :successful, default: false
+
+      t.string  :user_ip
+      t.text  :user_agent
+
+      t.timestamps
+    end
+
     create_table :casino_proxy_granting_tickets do |t|
       t.string  :ticket,       :null => false
       t.string  :iou,          :null => false
@@ -38,9 +36,7 @@ class CreateCasinoCoreSchema < ActiveRecord::Migration[4.2]
     add_index :casino_proxy_granting_tickets, :ticket, :unique => true
     add_index :casino_proxy_granting_tickets, :iou, :unique => true
     add_index :casino_proxy_granting_tickets, [:granter_type, :granter_id], :name => "index_proxy_granting_tickets_on_granter", :unique => true
-  end
 
-  def create_proxy_tickets
     create_table :casino_proxy_tickets do |t|
       t.string  :ticket,                                      :null => false
       t.text  :service,                                     :null => false
@@ -51,9 +47,7 @@ class CreateCasinoCoreSchema < ActiveRecord::Migration[4.2]
     end
     add_index :casino_proxy_tickets, :ticket, :unique => true
     add_index :casino_proxy_tickets, :proxy_granting_ticket_id, name: 'casino_proxy_tickets_on_pgt_id'
-  end
 
-  def create_service_rules
     create_table :casino_service_rules do |t|
       t.boolean :enabled, :default => true,  :null => false
       t.integer :order,   :default => 10,    :null => false
@@ -64,9 +58,7 @@ class CreateCasinoCoreSchema < ActiveRecord::Migration[4.2]
       t.timestamps
     end
     add_index :casino_service_rules, :url, :unique => true
-  end
 
-  def create_service_tickets
     create_table :casino_service_tickets do |t|
       t.string  :ticket,                                      :null => false
       t.text  :service,                                     :null => false
@@ -78,22 +70,19 @@ class CreateCasinoCoreSchema < ActiveRecord::Migration[4.2]
     end
     add_index :casino_service_tickets, :ticket, :unique => true
     add_index :casino_service_tickets, :ticket_granting_ticket_id, name: 'casino_service_tickets_on_tgt_id'
-  end
 
-  def create_ticket_granting_tickets
     create_table :casino_ticket_granting_tickets do |t|
       t.string  :ticket,                                                :null => false
       t.text  :user_agent
       t.integer :user_id,                                               :null => false
       t.boolean :awaiting_two_factor_authentication, :default => false, :null => false
       t.boolean :long_term,                          :default => false, :null => false
+      t.string :user_ip
 
       t.timestamps
     end
     add_index :casino_ticket_granting_tickets, :ticket, :unique => true
-  end
 
-  def create_two_factor_authenticators
     create_table :casino_two_factor_authenticators do |t|
       t.integer :user_id,                    :null => false
       t.string  :secret,                     :null => false
@@ -102,9 +91,7 @@ class CreateCasinoCoreSchema < ActiveRecord::Migration[4.2]
       t.timestamps
     end
     add_index :casino_two_factor_authenticators, :user_id
-  end
 
-  def create_users
     create_table :casino_users do |t|
       t.string  :authenticator,   :null => false
       t.string  :username,        :null => false
