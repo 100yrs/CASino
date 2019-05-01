@@ -8,7 +8,7 @@ module CASino
     namespace 'casino:migration'
 
     desc 'Installs CASino migration files.'
-    
+
     def install
       source_paths.each do |source_path|
         Dir["#{source_path}/*.rb"].each do |filename|

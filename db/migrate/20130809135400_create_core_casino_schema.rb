@@ -1,4 +1,4 @@
-class CreateCasinoSchema < ActiveRecord::Migration[4.2]
+class CreateCoreCasinoSchema < ActiveRecord::Migration[4.2]
   def change
     create_table :casino_login_tickets do |t|
       t.string :ticket, :null => false

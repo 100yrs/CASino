@@ -45,9 +45,9 @@ module CASino
     end
 
     private
-      def namespace_name
-        Rails::Generators.namespace.to_s.underscore
-      end
 
+    def namespace_name
+      Rails::Generators.namespace.to_s.underscore
+    end
   end
 end
